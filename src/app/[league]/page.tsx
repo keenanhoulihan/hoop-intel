@@ -1,12 +1,21 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ThresholdRail } from '@/components/ThresholdRail';
-import { ORGS, positionFor } from '@/core/fixtures';
-import { LEAGUE_IDS, getLeague, leagueParams } from '@/leagues';
+import { ContextRail } from '@/components/dashboard/ContextRail';
+import { ModuleFrame } from '@/components/dashboard/ModuleFrame';
+import { resolveModules } from '@/core/dashboard-registry';
+import { getProfile } from '@/core/profile';
+import { getLeague, leagueParams } from '@/leagues';
 
 export const generateStaticParams = leagueParams;
 
-export default async function LeaguePage({
+/**
+ * Above-the-fold budget: the News lead (up to ~10 wire items, each
+ * timestamp+category+headline+dek+team+source ≈ 6 fields) plus the top of
+ * the transactions ledger (visible without scrolling, not fully expanded).
+ * That's the primary module plus the start of the second — four modules
+ * max are ever on this page at all (News, Transactions, Rumor mill, plus
+ * the context rail), and Rumor mill sits below the fold by design.
+ */
+export default async function LeagueDashboard({
   params,
 }: {
   params: Promise<{ league: string }>;
@@ -15,53 +24,29 @@ export default async function LeaguePage({
   const league = getLeague(id);
   if (!league) notFound();
 
-  const orgs = ORGS[league.id] ?? [];
+  const profile = getProfile(league.id);
+  const ctx = { league: league.id, profile };
+  const modules = resolveModules(ctx);
 
   return (
     <main className="mx-auto max-w-[1360px] px-5 pb-20 pt-8 sm:px-7">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b-2 border-[var(--walnut)] pb-4">
-        <div>
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-[var(--bark-lo)]">
-            {league.name}
-          </div>
-          <h1 className="font-[family-name:var(--serif)] text-[clamp(26px,3.4vw,38px)] font-semibold tracking-[-0.01em]">
-            {league.economics.title}
-          </h1>
+      <header className="mb-8 border-b-2 border-walnut pb-4">
+        <div className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-bark-light">
+          {league.name}
         </div>
-        <nav className="flex gap-2">
-          {LEAGUE_IDS.map((l) => (
-            <Link
-              key={l}
-              href={`/${l}`}
-              aria-current={l === league.id ? 'page' : undefined}
-              className={`rounded-[2px] border px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-[0.11em] ${
-                l === league.id
-                  ? 'border-[var(--walnut)] bg-[var(--walnut)] text-[var(--bone)]'
-                  : 'border-[var(--oak-dk)] text-[var(--bark)] hover:bg-[var(--oak)]'
-              }`}
-            >
-              {getLeague(l)!.shortName}
-            </Link>
-          ))}
-        </nav>
+        <h1 className="font-serif text-[clamp(26px,3.4vw,38px)] font-semibold tracking-[-0.01em]">
+          Dashboard
+        </h1>
       </header>
 
-      {orgs.map((org) => {
-        const position = positionFor(org.id);
-        return (
-          <section key={org.id} className="mb-10">
-            <div className="mb-3 flex flex-wrap items-baseline gap-3">
-              <h2 className="font-[family-name:var(--serif)] text-[22px] font-semibold">
-                {org.name}
-              </h2>
-              <span className="text-[12px] text-[var(--muted)]">
-                {Object.values(org.grouping).join(' · ')}
-              </span>
-            </div>
-            <ThresholdRail league={league} position={position} />
-          </section>
-        );
-      })}
+      <div className="flex flex-col gap-10 min-[1121px]:flex-row min-[1121px]:items-start">
+        <div className="flex min-w-0 flex-1 flex-col gap-10">
+          {modules.map((m) => (
+            <ModuleFrame key={m.id} spec={m} ctx={ctx} />
+          ))}
+        </div>
+        <ContextRail league={league} />
+      </div>
     </main>
   );
 }

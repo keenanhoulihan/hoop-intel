@@ -1,16 +1,17 @@
 import type { ComponentType } from 'react';
 import type { LeagueId, SportId } from './league';
 import type { UserProfile } from './profile';
-import { getLiveGames, getRecentResults, getRecentTransactions, getUpcomingGames } from './queries';
-import { ResultsModule } from '@/components/dashboard/ResultsModule';
-import { LiveModule } from '@/components/dashboard/LiveModule';
-import { UpcomingModule } from '@/components/dashboard/UpcomingModule';
-import { TransactionsModule } from '@/components/dashboard/TransactionsModule';
+import { getNews, getRecentTransactions, getRumors } from './queries';
+import { NewsSection } from '@/components/dashboard/NewsSection';
+import { TransactionsLedger } from '@/components/dashboard/TransactionsLedger';
+import { RumorMill } from '@/components/dashboard/RumorMill';
 
 /**
- * Declarative dashboard modules. Adding a module later (the puzzle, a market
- * movement card, a live-game ticker) is one entry here plus a component —
- * nothing about the page or the layout changes.
+ * Declarative dashboard modules for the main column. Adding one later (the
+ * puzzle, a market-movement card) is one entry here plus a component —
+ * nothing about the page changes. The context rail (Apron watch / Room
+ * available / AP 25) is separate, fixed page furniture, not registry-driven
+ * — see ContextRail.tsx.
  */
 
 export interface ModuleLoadCtx {
@@ -35,48 +36,39 @@ export interface DashboardModuleSpec<T = any> {
 // to hold every module in one ordered list.
 export const REGISTRY: DashboardModuleSpec<any>[] = [
   {
-    id: 'results',
-    title: 'Results',
+    id: 'news',
+    title: 'News',
     size: 'primary',
     priority: 0,
     sport: 'basketball',
-    load: (ctx) => getRecentResults(ctx.league),
-    Component: ResultsModule,
-    seeMoreHref: (ctx) => `/${ctx.league}`,
-  },
-  {
-    id: 'live',
-    title: 'Live now',
-    size: 'secondary',
-    priority: 1,
-    sport: 'basketball',
-    load: (ctx) => getLiveGames(ctx.league),
-    Component: LiveModule,
-  },
-  {
-    id: 'upcoming',
-    title: 'Coming up',
-    size: 'secondary',
-    priority: 2,
-    sport: 'basketball',
-    load: (ctx) => getUpcomingGames(ctx.league),
-    Component: UpcomingModule,
+    load: (ctx) => getNews(ctx.league),
+    Component: NewsSection,
   },
   {
     id: 'transactions',
-    title: 'Transactions',
+    title: 'Recent transactions',
     size: 'secondary',
-    priority: 3,
+    priority: 1,
     sport: 'basketball',
     load: (ctx) => getRecentTransactions(ctx.league),
-    Component: TransactionsModule,
+    Component: TransactionsLedger,
+  },
+  {
+    id: 'rumors',
+    title: 'Rumor mill',
+    size: 'secondary',
+    priority: 2,
+    sport: 'basketball',
+    load: (ctx) => getRumors(ctx.league),
+    Component: RumorMill,
   },
 ];
 
 /**
- * Ordering input for the slot layout. Reordering/hiding/pinning later are
+ * Ordering input for the main column. Reordering/hiding/pinning later are
  * changes to this function's output (e.g. reading `profile` to re-sort or
- * filter) — the layout itself never needs to know where the order came from.
+ * filter) — nothing that renders the list needs to know where the order
+ * came from.
  */
 export function resolveModules(ctx: ModuleLoadCtx): DashboardModuleSpec<any>[] {
   return REGISTRY.slice().sort((a, b) => a.priority - b.priority);

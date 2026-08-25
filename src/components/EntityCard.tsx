@@ -26,28 +26,26 @@ export function EntityCard({
   heroStat?: HeroStat;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-[2px] border border-[#E3D9C6] bg-[var(--bone)] px-3 py-2">
+    <div className="flex items-center gap-3 rounded border border-rule-soft bg-bone px-3 py-2">
       <div
         aria-hidden
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--oak)] font-[family-name:var(--serif)] text-[13px] font-semibold text-[var(--walnut)]"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-oak font-serif text-[13px] font-semibold text-walnut"
       >
         {initials(player.fullName)}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[13.5px] font-semibold text-[var(--ink)]">{player.fullName}</div>
-        <div className="truncate text-[11px] text-[var(--muted)]">
+        <div className="truncate text-[13.5px] font-semibold text-ink">{player.fullName}</div>
+        <div className="truncate text-[11px] text-muted">
           {team ? `${team.code} · ` : ''}
           {player.position}
         </div>
       </div>
       {heroStat && (
         <div className="shrink-0 text-right">
-          <div className="text-[9px] font-bold uppercase tracking-[0.11em] text-[var(--bark-lo)]">
+          <div className="text-[9px] font-bold uppercase tracking-[0.11em] text-bark-light">
             {heroStat.label}
           </div>
-          <div className="font-[family-name:var(--mono)] text-[12.5px] tabular-nums text-[var(--ink)]">
-            {heroStat.value}
-          </div>
+          <div className="font-mono text-[12.5px] tabular-nums text-ink">{heroStat.value}</div>
         </div>
       )}
     </div>

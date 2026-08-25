@@ -148,6 +148,8 @@ export interface Transaction {
   playerIds: string[];
   /** One-line human-readable summary — this is what renders in the news/story feed. */
   description: string;
+  /** The cap mechanism that made the move legal — exception used, salary matched, pick attached. What the transactions ledger is for. */
+  mechanism?: string;
   source: SourceRef;
 }
 
@@ -221,4 +223,47 @@ export interface StoryEvent {
   headline: string;
   detail?: string;
   source: SourceRef;
+}
+
+/* ============================================================
+   NEWS + RUMORS — the dashboard's lead section
+   ============================================================ */
+
+/** League-dependent free string — 'trades' | 'injuries' for NBA, 'transfer-portal' for NCAAM, etc. */
+export type NewsCategory = string;
+
+export interface NewsItem {
+  id: string;
+  league: LeagueId;
+  category: NewsCategory;
+  headline: string;
+  dek: string;
+  teamId?: string;
+  hot: boolean;
+  source: string;
+  publishedAt: string; // ISO datetime
+  /**
+   * Minutes old as of this fixture snapshot. This — not `Date.now() -
+   * publishedAt` — is what recency sorting and the "12m ago" label read
+   * from. A fixture's `publishedAt` is a fixed point in the past relative
+   * to whenever the snapshot was authored; computing live elapsed time
+   * against it would just show "9 months ago" once the fixture ages past
+   * whatever "now" happens to be. A live provider replaces this with a
+   * real clock-derived value; fixtures store the number directly.
+   */
+  elapsedMinutes: number;
+}
+
+export interface Rumor {
+  id: string;
+  league: LeagueId;
+  headline: string;
+  body: string;
+  teamIds: string[];
+  playerIds: string[];
+  /** How many independent sources describe the same thing — 1 quiet, 4 hot. */
+  heat: 1 | 2 | 3 | 4;
+  source: string;
+  publishedAt: string; // ISO datetime
+  elapsedMinutes: number; // see NewsItem — same reasoning
 }

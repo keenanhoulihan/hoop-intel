@@ -20,6 +20,14 @@
   --clay-lo: #f0e0d6;
   --ink: #2b2119;
   --muted: #7a6752;
+  --rule: #d6c9b0;
+  --rule-soft: #e3d9c6;
+
+  /* ThresholdRail zone fills — intermediate steps in the same warm scale
+     toward clay, not a new hue. Moss/clay remain the only saturated colors. */
+  --rail-floor: #dfe6da;
+  --rail-caution: #e6cdbd;
+  --rail-warn: #cfa089;
 
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

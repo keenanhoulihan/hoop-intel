@@ -29,6 +29,22 @@ const FIXTURE: SourceRef = {
   confidence: 'fixture',
 };
 
+/**
+ * Real-data drop-in path. A keyed override takes precedence over the
+ * generated/hand-authored base record for the same id — that's how a
+ * verified real player, contract, or team migrates in one at a time
+ * without touching the fixture set it's replacing. Empty by default;
+ * this repo has no generator yet, so nothing populates it, but every
+ * entity array below is built through this so the seam is real, not
+ * aspirational.
+ */
+function withOverrides<T extends { id: string }>(base: T[], overrides: T[]): T[] {
+  if (overrides.length === 0) return base;
+  const byId = new Map(base.map((r) => [r.id, r]));
+  for (const o of overrides) byId.set(o.id, o);
+  return [...byId.values()];
+}
+
 /* ============================================================
    SEASONS
    ============================================================ */
@@ -42,7 +58,10 @@ export const SEASONS: Season[] = [
    PLAYERS
    ============================================================ */
 
-export const PLAYERS: Player[] = [
+/** Keyed real records go here as they're verified — see `withOverrides`. */
+const PLAYER_OVERRIDES: Player[] = [];
+
+const PLAYERS_BASE: Player[] = [
   { id: 'tatum', league: 'nba', sport: 'basketball', firstName: 'Jayson', lastName: 'Tatum', fullName: 'Jayson Tatum', teamId: 'BOS', position: 'SF', jerseyNumber: 0, heightInches: 80, weightLbs: 210, birthDate: '1998-03-03', draft: { year: 2017, round: 1, pick: 3, college: 'Duke', country: 'USA' }, status: 'active', source: FIXTURE },
   { id: 'brown', league: 'nba', sport: 'basketball', firstName: 'Jaylen', lastName: 'Brown', fullName: 'Jaylen Brown', teamId: 'BOS', position: 'SG', jerseyNumber: 7, heightInches: 78, weightLbs: 223, birthDate: '1996-10-24', draft: { year: 2016, round: 1, pick: 3, college: 'California', country: 'USA' }, status: 'active', source: FIXTURE },
   { id: 'white', league: 'nba', sport: 'basketball', firstName: 'Derrick', lastName: 'White', fullName: 'Derrick White', teamId: 'BOS', position: 'PG', jerseyNumber: 9, heightInches: 76, weightLbs: 190, birthDate: '1994-07-02', draft: { year: 2017, round: 1, pick: 29, college: 'Colorado', country: 'USA' }, status: 'active', source: FIXTURE },
@@ -58,6 +77,8 @@ export const PLAYERS: Player[] = [
   { id: 'duren', league: 'nba', sport: 'basketball', firstName: 'Jalen', lastName: 'Duren', fullName: 'Jalen Duren', teamId: 'DET', position: 'C', jerseyNumber: 0, heightInches: 82, weightLbs: 250, birthDate: '2003-11-18', draft: { year: 2022, round: 1, pick: 13, college: 'Memphis', country: 'USA' }, status: 'active', source: FIXTURE },
   { id: 'athompson', league: 'nba', sport: 'basketball', firstName: 'Ausar', lastName: 'Thompson', fullName: 'Ausar Thompson', teamId: 'DET', position: 'SF', jerseyNumber: 9, heightInches: 79, weightLbs: 200, birthDate: '2003-01-30', draft: { year: 2023, round: 1, pick: 5, country: 'USA' }, status: 'injured', source: FIXTURE },
 ];
+
+export const PLAYERS: Player[] = withOverrides(PLAYERS_BASE, PLAYER_OVERRIDES);
 
 export function playersForTeam(teamId: string): Player[] {
   return PLAYERS.filter((p) => p.teamId === teamId);
@@ -143,9 +164,9 @@ export function contractsForPlayer(playerId: string): Contract[] {
    ============================================================ */
 
 export const TRANSACTIONS: Transaction[] = [
-  { id: 't1', league: 'nba', kind: 'trade', date: '2025-06-30', teamIds: ['BOS', 'DET'], playerIds: [], description: 'Celtics and Pistons swap future second-round picks.', source: FIXTURE },
-  { id: 't2', league: 'nba', kind: 'extension', date: '2025-07-06', teamIds: ['DET'], playerIds: ['cunningham'], description: 'Cade Cunningham signs a 5-year maximum extension with Detroit.', source: FIXTURE },
-  { id: 't3', league: 'nba', kind: 'draft', date: '2022-06-23', teamIds: ['OKC'], playerIds: ['holmgren'], description: 'Thunder select Chet Holmgren 2nd overall in the 2022 NBA Draft.', source: FIXTURE },
+  { id: 't1', league: 'nba', kind: 'trade', date: '2025-06-30', teamIds: ['BOS', 'DET'], playerIds: [], description: 'Celtics and Pistons swap future second-round picks.', mechanism: 'Cash-only pick swap — no salary attached, no exception required.', source: FIXTURE },
+  { id: 't2', league: 'nba', kind: 'extension', date: '2025-07-06', teamIds: ['DET'], playerIds: ['cunningham'], description: 'Cade Cunningham signs a 5-year maximum extension with Detroit.', mechanism: 'Rookie-scale designated extension — cap hold converts to full salary at signing.', source: FIXTURE },
+  { id: 't3', league: 'nba', kind: 'draft', date: '2022-06-23', teamIds: ['OKC'], playerIds: ['holmgren'], description: 'Thunder select Chet Holmgren 2nd overall in the 2022 NBA Draft.', mechanism: 'Rookie-scale slot #2 — automatic cap hold, no cap impact until signed.', source: FIXTURE },
 ];
 
 export function transactionsForLeague(league: string): Transaction[] {

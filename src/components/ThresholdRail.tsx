@@ -15,24 +15,24 @@ import {
  * NBA — and renders the same object. That is what keeps the UI identical across
  * leagues: the component has no idea which sport it's showing.
  *
- * Requires the palette vars from globals.css (--walnut, --oak, --clay, --bone…).
+ * Every color here is a named Tailwind token or a CSS var, never raw hex.
  */
 
 const ZONE: Record<Severity, string> = {
-  floor: '#DFE6DA',
+  floor: 'var(--rail-floor)',
   neutral: 'var(--oak)',
-  caution: '#E6CDBD',
-  warn: '#CFA089',
+  caution: 'var(--rail-caution)',
+  warn: 'var(--rail-warn)',
   hard: 'var(--clay)',
 };
 
 const TONE: Record<string, string> = {
-  ok: 'text-[color:var(--moss)]',
-  limited: 'text-[color:var(--bark)]',
-  blocked: 'text-[color:var(--clay)]',
-  good: 'text-[color:var(--moss)]',
-  bad: 'text-[color:var(--clay)]',
-  neutral: 'text-[color:var(--ink)]',
+  ok: 'text-moss',
+  limited: 'text-bark',
+  blocked: 'text-clay',
+  good: 'text-moss',
+  bad: 'text-clay',
+  neutral: 'text-ink',
 };
 
 export function ThresholdRail({
@@ -71,23 +71,23 @@ export function ThresholdRail({
     .join(', ')}.`;
 
   return (
-    <section className="mb-7 rounded-[3px] border border-[#D6C9B0] bg-[var(--bone-hi)] px-4 pb-4 pt-5 sm:px-6">
+    <section className="mb-7 rounded-panel border border-rule bg-bone-hi px-4 pb-4 pt-5 shadow-panel sm:px-6">
       {/* header */}
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
         <div>
-          <div className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-[var(--bark-lo)]">
+          <div className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-bark-light">
             {eco.title} · {league.season.label(position.season)}
           </div>
-          <div className="font-[family-name:var(--serif)] text-[17px]">{status.label}</div>
+          <div className="font-serif text-[17px]">{status.label}</div>
         </div>
         <dl className="flex gap-5 sm:gap-6">
           {stats.map((s) => (
             <div key={s.label} className="text-right">
-              <dt className="text-[9.5px] font-bold uppercase tracking-[0.13em] text-[var(--bark-lo)]">
+              <dt className="text-[9.5px] font-bold uppercase tracking-[0.13em] text-bark-light">
                 {s.label}
               </dt>
               <dd
-                className={`mt-0.5 font-[family-name:var(--mono)] text-[19px] tabular-nums tracking-[-0.03em] sm:text-[22px] ${
+                className={`mt-0.5 font-mono text-[19px] tabular-nums tracking-[-0.03em] sm:text-[22px] ${
                   TONE[s.tone ?? 'neutral']
                 }`}
               >
@@ -102,7 +102,7 @@ export function ThresholdRail({
       <div
         role="img"
         aria-label={railLabel}
-        className="relative mt-[54px] h-4 rounded-[2px] bg-[var(--bone-lo)] sm:mt-[34px]"
+        className="relative mt-[54px] h-4 rounded bg-bone-lo sm:mt-[34px]"
       >
         {segments.map((s, i) => (
           <div
@@ -121,42 +121,37 @@ export function ThresholdRail({
         ))}
 
         <div
-          className="absolute -inset-y-[15px] w-[3px] rounded-[2px] bg-[var(--walnut)]"
+          className="absolute -inset-y-[15px] w-[3px] rounded bg-walnut"
           style={{ left: `${pct(position.committed)}%` }}
         >
-          <b className="absolute -top-[38px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[2px] bg-[var(--walnut)] px-2 py-[3px] font-[family-name:var(--mono)] text-[11px] font-normal text-[var(--bone)] after:absolute after:left-1/2 after:-bottom-1 after:-ml-1 after:border-4 after:border-b-0 after:border-transparent after:border-t-[var(--walnut)] after:content-['']">
+          <b className="absolute -top-[38px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-walnut px-2 py-[3px] font-mono text-[11px] font-normal text-bone after:absolute after:left-1/2 after:-bottom-1 after:-ml-1 after:border-4 after:border-b-0 after:border-transparent after:border-t-walnut after:content-['']">
             {fmt(position.committed)}
           </b>
         </div>
       </div>
 
       {/* constraints */}
-      <ul className="mt-[58px] flex flex-wrap gap-x-5 gap-y-2 text-[11.5px] text-[var(--muted)] sm:mt-11">
+      <ul className="mt-[58px] flex flex-wrap gap-x-5 gap-y-2 text-[11.5px] text-muted sm:mt-11">
         {constraints.map((c) => (
           <li key={c.id}>
             {c.label}{' '}
-            <b className={`font-[family-name:var(--mono)] font-semibold ${TONE[c.tone]}`}>
-              {c.value}
-            </b>
+            <b className={`font-mono font-semibold ${TONE[c.tone]}`}>{c.value}</b>
           </li>
         ))}
       </ul>
 
       {/* obligations — money already spent, which the rail doesn't show */}
       {position.obligations.length > 0 && (
-        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[#E3D9C6] pt-3 text-[11.5px] text-[var(--bark-lo)]">
+        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-rule-soft pt-3 text-[11.5px] text-bark-light">
           {position.obligations.map((o) => (
             <li key={o.id} title={o.note}>
-              {o.label}{' '}
-              <b className="font-[family-name:var(--mono)] font-semibold text-[var(--ink)]">
-                {fmt(o.amount)}
-              </b>
+              {o.label} <b className="font-mono font-semibold text-ink">{fmt(o.amount)}</b>
             </li>
           ))}
         </ul>
       )}
 
-      <p className="mt-3 text-[11px] italic text-[var(--bark-lo)]">
+      <p className="mt-3 text-[11px] italic text-bark-light">
         {position.source.confidence === 'fixture'
           ? 'Sample data.'
           : `${position.source.provider}, ${new Date(position.source.retrievedAt).toLocaleDateString()}.`}
@@ -176,14 +171,14 @@ function Tick({
 }) {
   return (
     <div
-      className="absolute -inset-y-[9px] w-px bg-[var(--bark)]"
+      className="absolute -inset-y-[9px] w-px bg-bark"
       style={{ left: `${left}%` }}
       title={threshold.consequence}
     >
-      <span className="absolute -top-6 left-0 hidden -translate-x-1/2 whitespace-nowrap text-[9.5px] font-bold uppercase tracking-[0.09em] text-[var(--bark)] sm:block">
+      <span className="absolute -top-6 left-0 hidden -translate-x-1/2 whitespace-nowrap text-[9.5px] font-bold uppercase tracking-[0.09em] text-bark sm:block">
         {threshold.label}
       </span>
-      <i className="absolute -bottom-[19px] left-0 -translate-x-1/2 whitespace-nowrap font-[family-name:var(--mono)] text-[9px] not-italic text-[var(--bark-lo)] sm:text-[10px]">
+      <i className="absolute -bottom-[19px] left-0 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] not-italic text-bark-light sm:text-[10px]">
         <span className="sm:hidden">{threshold.short}</span>
         <span className="hidden sm:inline">{label}</span>
       </i>

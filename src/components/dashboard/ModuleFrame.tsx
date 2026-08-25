@@ -10,7 +10,13 @@ import type { DashboardModuleSpec, ModuleLoadCtx } from '@/core/dashboard-regist
  */
 export function ModuleFrame({ spec, ctx }: { spec: DashboardModuleSpec; ctx: ModuleLoadCtx }) {
   return (
-    <Suspense fallback={<ModuleShell title={spec.title}><ModuleSkeleton /></ModuleShell>}>
+    <Suspense
+      fallback={
+        <ModuleShell title={spec.title}>
+          <ModuleSkeleton />
+        </ModuleShell>
+      }
+    >
       <ModuleBody spec={spec} ctx={ctx} />
     </Suspense>
   );
@@ -46,13 +52,13 @@ function ModuleShell({
 }) {
   const id = `mod-${title.toLowerCase().replace(/\s+/g, '-')}`;
   return (
-    <section aria-labelledby={id}>
-      <div className="mb-3 flex items-baseline justify-between">
-        <h2 id={id} className="font-[family-name:var(--serif)] text-[17px] font-semibold text-[var(--ink)]">
+    <section aria-labelledby={id} className="border-t-2 border-walnut pt-4">
+      <div className="mb-4 flex items-baseline justify-between">
+        <h2 id={id} className="font-serif text-[19px] font-semibold text-ink">
           {title}
         </h2>
         {href && (
-          <Link href={href} className="text-[11.5px] font-semibold text-[var(--bark)] hover:text-[var(--walnut)]">
+          <Link href={href} className="text-[11.5px] font-semibold text-bark hover:text-walnut">
             See more →
           </Link>
         )}
@@ -65,15 +71,15 @@ function ModuleShell({
 function ModuleSkeleton() {
   return (
     <div className="animate-pulse space-y-2" aria-hidden>
-      <div className="h-16 rounded-[3px] bg-[var(--bone-lo)]" />
-      <div className="h-16 rounded-[3px] bg-[var(--bone-lo)]" />
+      <div className="h-16 rounded bg-bone-lo" />
+      <div className="h-16 rounded bg-bone-lo" />
     </div>
   );
 }
 
 function ModuleError({ title }: { title: string }) {
   return (
-    <p className="rounded-[2px] border border-dashed border-[var(--clay)] bg-[var(--clay-lo)] px-3 py-4 text-[12.5px] text-[var(--bark)]">
+    <p className="rounded border border-dashed border-clay bg-clay-wash px-3 py-4 text-[12.5px] text-bark">
       {title} isn&rsquo;t available right now.
     </p>
   );

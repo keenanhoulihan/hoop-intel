@@ -1,7 +1,8 @@
-export function EmptyState({ label }: { label: string }) {
+export function EmptyState({ label, action }: { label: string; action?: React.ReactNode }) {
   return (
-    <p className="rounded-[2px] border border-dashed border-[var(--oak-dk)] bg-[var(--bone)] px-3 py-4 text-[12.5px] text-[var(--muted)]">
-      {label}
-    </p>
+    <div className="rounded border border-dashed border-oak-dark bg-bone px-3 py-4 text-[12.5px] text-muted">
+      <p className="font-serif text-[14px] not-italic text-bark">{label}</p>
+      {action && <div className="mt-2">{action}</div>}
+    </div>
   );
 }
