@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { Org } from '@/core/league';
 
@@ -19,6 +19,24 @@ const selectClass =
   'appearance-none rounded border border-oak-dark bg-bone px-2.5 py-1.5 pr-7 text-[12px] text-ink bg-no-repeat';
 const selectStyle = { backgroundImage: CHEVRON, backgroundPosition: 'right 8px center' };
 
+/** Fixed division order per conference — matches the NBA groupings in league.ts. */
+const NBA_DIVISION_ORDER: Record<string, string[]> = {
+  Eastern: ['Atlantic', 'Central', 'Southeast'],
+  Western: ['Northwest', 'Pacific', 'Southwest'],
+};
+
+/** Reads the current #hash on mount and on hash change, so the "current team" shows selected without a real per-team route. */
+function useHashSelection(): string {
+  const [hash, setHash] = useState('');
+  useEffect(() => {
+    const read = () => setHash(window.location.hash.replace('#', ''));
+    read();
+    window.addEventListener('hashchange', read);
+    return () => window.removeEventListener('hashchange', read);
+  }, []);
+  return hash;
+}
+
 /**
  * Sticky sub-nav beneath the masthead — breadcrumb + league-specific
  * context selects (team picker for NBA, conference + school for NCAAM).
@@ -26,9 +44,9 @@ const selectStyle = { backgroundImage: CHEVRON, backgroundPosition: 'right 8px c
  * browser-default chrome either.
  */
 export function SubNav({ league, orgs }: { league: SubNavLeague; orgs: Org[] }) {
-  const router = useRouter();
   const pathname = usePathname();
   const onCap = pathname?.endsWith('/cap');
+  const hash = useHashSelection();
 
   return (
     <div className="sticky top-[49px] z-10 border-b border-rule bg-bone-hi">
@@ -42,33 +60,54 @@ export function SubNav({ league, orgs }: { league: SubNavLeague; orgs: Org[] }) 
         </nav>
 
         {league.id === 'ncaam' ? (
-          <NcaamSelects league={league} orgs={orgs} />
+          <NcaamSelects league={league} orgs={orgs} hash={hash} />
         ) : (
-          <select
-            aria-label="Jump to team"
-            className={selectClass}
-            style={selectStyle}
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) router.push(`/${league.id}/cap#${e.target.value}`);
-            }}
-          >
-            <option value="" disabled>
-              Jump to team…
-            </option>
-            {orgs.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
-          </select>
+          <NbaTeamSelect league={league} orgs={orgs} hash={hash} />
         )}
       </div>
     </div>
   );
 }
 
-function NcaamSelects({ league, orgs }: { league: SubNavLeague; orgs: Org[] }) {
+function NbaTeamSelect({ league, orgs, hash }: { league: SubNavLeague; orgs: Org[]; hash: string }) {
+  const router = useRouter();
+
+  const groups = useMemo(() => {
+    const out: { label: string; orgs: Org[] }[] = [];
+    for (const [conference, divisions] of Object.entries(NBA_DIVISION_ORDER)) {
+      for (const division of divisions) {
+        const inDivision = orgs.filter((o) => o.grouping.conference === conference && o.grouping.division === division);
+        if (inDivision.length > 0) out.push({ label: `${conference} · ${division}`, orgs: inDivision });
+      }
+    }
+    return out;
+  }, [orgs]);
+
+  return (
+    <select
+      aria-label="Jump to team"
+      className={selectClass}
+      style={selectStyle}
+      value={orgs.some((o) => o.id === hash) ? hash : ''}
+      onChange={(e) => {
+        router.push(e.target.value ? `/${league.id}/cap#${e.target.value}` : `/${league.id}`);
+      }}
+    >
+      <option value="">Dashboard</option>
+      {groups.map((g) => (
+        <optgroup key={g.label} label={g.label}>
+          {g.orgs.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  );
+}
+
+function NcaamSelects({ league, orgs, hash }: { league: SubNavLeague; orgs: Org[]; hash: string }) {
   const router = useRouter();
   const conferences = useMemo(
     () => [...new Set(orgs.map((o) => o.grouping.conference).filter(Boolean))],
@@ -97,14 +136,12 @@ function NcaamSelects({ league, orgs }: { league: SubNavLeague; orgs: Org[] }) {
         aria-label="Jump to school"
         className={selectClass}
         style={selectStyle}
-        defaultValue=""
+        value={schools.some((o) => o.id === hash) ? hash : ''}
         onChange={(e) => {
-          if (e.target.value) router.push(`/${league.id}/cap#${e.target.value}`);
+          router.push(e.target.value ? `/${league.id}/cap#${e.target.value}` : `/${league.id}`);
         }}
       >
-        <option value="" disabled>
-          Jump to school…
-        </option>
+        <option value="">Dashboard</option>
         {schools.map((o) => (
           <option key={o.id} value={o.id}>
             {o.name}

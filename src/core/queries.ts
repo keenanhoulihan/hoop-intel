@@ -1,8 +1,9 @@
 import { bandOf, formatUSD, type LeagueId, type LeagueModule } from './league';
-import type { NewsItem, Player, Rumor, Team, Transaction } from './domain';
-import { ORGS, positionFor } from './fixtures';
+import type { InjuryReport, NewsItem, Player, Rumor, Team, Transaction } from './domain';
+import { ORGS, TEAM_RECORDS, positionFor } from './fixtures';
 import { TEAMS, TRANSACTIONS, playerById } from './domain-fixtures';
 import { AP_TOP_25, newsForLeague, rumorsForLeague } from './news-fixtures';
+import { injuriesForLeague } from './injury-fixtures';
 
 /**
  * The provider-layer seam. Components call these, never `domain-fixtures` /
@@ -139,6 +140,64 @@ export async function getRoomAvailable(league: LeagueModule): Promise<RoomAvaila
 export async function getAP25(): Promise<typeof AP_TOP_25> {
   try {
     return AP_TOP_25;
+  } catch {
+    return [];
+  }
+}
+
+/* ============================================================
+   INJURIES
+   ============================================================ */
+
+export interface InjuryCard extends InjuryReport {
+  player: Player | null;
+  team: Team | null;
+}
+
+export async function getInjuries(league: LeagueId): Promise<InjuryCard[]> {
+  try {
+    return injuriesForLeague(league).map((i) => ({
+      ...i,
+      player: playerById(i.playerId),
+      team: teamById(i.teamId),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/* ============================================================
+   TEAM DIRECTORY — full-width grid, grouped by division
+   ============================================================ */
+
+export interface TeamDirectoryEntry {
+  team: Team;
+  division: string;
+  conference: string;
+  record: string;
+  payroll: string;
+  tone: 'moss' | 'oak' | 'clay';
+}
+
+export async function getTeamDirectory(league: LeagueModule): Promise<TeamDirectoryEntry[]> {
+  try {
+    const orgs = ORGS[league.id] ?? [];
+    return orgs.map((org) => {
+      const position = positionFor(org.id);
+      const thresholds = league.economics.thresholds(position.season);
+      const band = bandOf(position, thresholds);
+      const tone: 'moss' | 'oak' | 'clay' =
+        band?.id === 'apron1' || band?.id === 'apron2' ? 'clay' : band?.id === 'cap' || band?.id === 'tax' ? 'oak' : 'moss';
+      const record = TEAM_RECORDS[org.id];
+      return {
+        team: TEAMS.find((t) => t.id === org.id) ?? { ...org, roster: [] },
+        division: org.grouping.division ?? '',
+        conference: org.grouping.conference ?? '',
+        record: record ? `${record.wins}-${record.losses}` : '—',
+        payroll: formatUSD(position.committed),
+        tone,
+      };
+    });
   } catch {
     return [];
   }

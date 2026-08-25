@@ -6,11 +6,13 @@ import type { NewsCard as NewsCardData } from '@/core/queries';
 import { EmptyState } from './EmptyState';
 
 const CATEGORY_LABEL: Record<string, string> = {
-  'free-agency': 'Free agency',
   trades: 'Trades',
-  injuries: 'Injuries',
-  'front-office': 'Front office',
+  signings: 'Signings',
+  waivers: 'Waivers',
+  claims: 'Claims',
   extensions: 'Extensions',
+  'front-office': 'Front office',
+  coaching: 'Coaching',
   'transfer-portal': 'Transfer portal',
   nil: 'NIL',
   commitments: 'Commitments',

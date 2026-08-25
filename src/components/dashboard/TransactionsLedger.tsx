@@ -50,9 +50,9 @@ export function TransactionsLedger({ data }: { data: TransactionSummary[] }) {
               <span className="font-semibold">{teams.map((t) => t.code).join(' / ')}</span>{' '}
               {transaction.description}
             </p>
-            {transaction.mechanism && (
-              <p className="mt-1 font-mono text-[11px] text-bark-light">{transaction.mechanism}</p>
-            )}
+            <p className="mt-1 font-mono text-[11px] text-bark-light">
+              {transaction.mechanism ?? <span className="italic text-muted">Mechanism not on file.</span>}
+            </p>
             {players.length > 0 && (
               <div className="mt-2 flex flex-col gap-2">
                 {players.map((p) => (

@@ -1,28 +1,32 @@
 import type { ComponentType } from 'react';
-import type { LeagueId, SportId } from './league';
+import type { LeagueId, LeagueModule, SportId } from './league';
 import type { UserProfile } from './profile';
-import { getNews, getRecentTransactions, getRumors } from './queries';
+import { getInjuries, getNews, getRecentTransactions, getRumors, getTeamDirectory } from './queries';
 import { NewsSection } from '@/components/dashboard/NewsSection';
 import { TransactionsLedger } from '@/components/dashboard/TransactionsLedger';
+import { InjuryBoard } from '@/components/dashboard/InjuryBoard';
 import { RumorMill } from '@/components/dashboard/RumorMill';
+import { TeamGrid } from '@/components/dashboard/TeamGrid';
 
 /**
- * Declarative dashboard modules for the main column. Adding one later (the
- * puzzle, a market-movement card) is one entry here plus a component —
- * nothing about the page changes. The context rail (Apron watch / Room
- * available / AP 25) is separate, fixed page furniture, not registry-driven
- * — see ContextRail.tsx.
+ * Declarative dashboard modules for the main column, plus full-width
+ * sections (Team directory) that span past it. Adding a sixth section later
+ * is one entry here plus a component — nothing about the page changes. The
+ * context rail (Apron watch / Room available / AP 25) is separate, fixed
+ * page furniture, not registry-driven — see ContextRail.tsx.
  */
 
 export interface ModuleLoadCtx {
   league: LeagueId;
+  leagueModule: LeagueModule;
   profile: UserProfile;
 }
 
 export interface DashboardModuleSpec<T = any> {
   id: string;
   title: string;
-  size: 'primary' | 'secondary';
+  /** 'full' spans the whole page width (main column + context rail), not just the main column. */
+  size: 'primary' | 'secondary' | 'full';
   priority: number;
   /** Parameterized, not assumed — a future non-basketball league filters on this. */
   sport: SportId;
@@ -54,13 +58,31 @@ export const REGISTRY: DashboardModuleSpec<any>[] = [
     Component: TransactionsLedger,
   },
   {
-    id: 'rumors',
-    title: 'Rumor mill',
+    id: 'injuries',
+    title: 'Injuries',
     size: 'secondary',
     priority: 2,
     sport: 'basketball',
+    load: (ctx) => getInjuries(ctx.league),
+    Component: InjuryBoard,
+  },
+  {
+    id: 'rumors',
+    title: 'Rumor mill',
+    size: 'secondary',
+    priority: 3,
+    sport: 'basketball',
     load: (ctx) => getRumors(ctx.league),
     Component: RumorMill,
+  },
+  {
+    id: 'team-directory',
+    title: 'Team directory',
+    size: 'full',
+    priority: 4,
+    sport: 'basketball',
+    load: (ctx) => getTeamDirectory(ctx.leagueModule),
+    Component: TeamGrid,
   },
 ];
 

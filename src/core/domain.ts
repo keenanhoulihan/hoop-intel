@@ -254,6 +254,28 @@ export interface NewsItem {
   elapsedMinutes: number;
 }
 
+/* ============================================================
+   INJURIES — a status stream about people, not an event stream about
+   assets. Deliberately separate from NewsItem/Transaction: a move is true
+   forever, a designation is true until Thursday. Mixing them makes both
+   harder to scan.
+   ============================================================ */
+
+export type InjuryDesignation = 'out' | 'doubtful' | 'questionable' | 'day-to-day' | 'cleared';
+
+export interface InjuryReport {
+  id: string;
+  league: LeagueId;
+  playerId: string;
+  teamId: string;
+  designation: InjuryDesignation;
+  bodyArea: string;
+  timeline: string;
+  gamesMissed: number;
+  updatedAt: string; // ISO datetime
+  elapsedMinutes: number; // same reasoning as NewsItem.elapsedMinutes
+}
+
 export interface Rumor {
   id: string;
   league: LeagueId;
