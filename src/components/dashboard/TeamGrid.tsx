@@ -33,7 +33,7 @@ export function TeamGrid({ data }: { data: TeamDirectoryEntry[] }) {
             {teams.map((entry) => (
               <Link
                 key={entry.team.id}
-                href={`/${entry.team.league}/cap#${entry.team.id}`}
+                href={entry.team.league === 'nba' ? `/${entry.team.league}/${entry.team.id}` : `/${entry.team.league}/cap#${entry.team.id}`}
                 className="flex flex-col gap-2 rounded-panel border border-rule bg-bone-hi p-3 hover:border-walnut"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded bg-walnut font-mono text-[11px] font-bold text-bone">

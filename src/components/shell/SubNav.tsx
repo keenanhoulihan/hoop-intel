@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { Org } from '@/core/league';
 
@@ -25,18 +25,6 @@ const NBA_DIVISION_ORDER: Record<string, string[]> = {
   Western: ['Northwest', 'Pacific', 'Southwest'],
 };
 
-/** Reads the current #hash on mount and on hash change, so the "current team" shows selected without a real per-team route. */
-function useHashSelection(): string {
-  const [hash, setHash] = useState('');
-  useEffect(() => {
-    const read = () => setHash(window.location.hash.replace('#', ''));
-    read();
-    window.addEventListener('hashchange', read);
-    return () => window.removeEventListener('hashchange', read);
-  }, []);
-  return hash;
-}
-
 /**
  * Sticky sub-nav beneath the masthead — breadcrumb + league-specific
  * context selects (team picker for NBA, conference + school for NCAAM).
@@ -45,8 +33,11 @@ function useHashSelection(): string {
  */
 export function SubNav({ league, orgs }: { league: SubNavLeague; orgs: Org[] }) {
   const pathname = usePathname();
-  const onCap = pathname?.endsWith('/cap');
-  const hash = useHashSelection();
+  const segment = pathname?.split('/')[2]; // /{league}/{segment}
+  const currentOrg = segment ? orgs.find((o) => o.id === segment) : undefined;
+  const onCap = segment === 'cap';
+
+  const crumb = currentOrg ? currentOrg.name : onCap ? 'Cap sheet' : 'Dashboard';
 
   return (
     <div className="sticky top-[49px] z-10 border-b border-rule bg-bone-hi">
@@ -56,20 +47,20 @@ export function SubNav({ league, orgs }: { league: SubNavLeague; orgs: Org[] }) 
           <span className="mx-1.5 text-oak-dark">/</span>
           <span className="text-ink">{league.shortName}</span>
           <span className="mx-1.5 text-oak-dark">/</span>
-          <span className="font-semibold text-ink">{onCap ? 'Cap sheet' : 'Dashboard'}</span>
+          <span className="font-semibold text-ink">{crumb}</span>
         </nav>
 
         {league.id === 'ncaam' ? (
-          <NcaamSelects league={league} orgs={orgs} hash={hash} />
+          <NcaamSelects league={league} orgs={orgs} currentId={currentOrg?.id} />
         ) : (
-          <NbaTeamSelect league={league} orgs={orgs} hash={hash} />
+          <NbaTeamSelect league={league} orgs={orgs} currentId={currentOrg?.id} />
         )}
       </div>
     </div>
   );
 }
 
-function NbaTeamSelect({ league, orgs, hash }: { league: SubNavLeague; orgs: Org[]; hash: string }) {
+function NbaTeamSelect({ league, orgs, currentId }: { league: SubNavLeague; orgs: Org[]; currentId?: string }) {
   const router = useRouter();
 
   const groups = useMemo(() => {
@@ -88,9 +79,9 @@ function NbaTeamSelect({ league, orgs, hash }: { league: SubNavLeague; orgs: Org
       aria-label="Jump to team"
       className={selectClass}
       style={selectStyle}
-      value={orgs.some((o) => o.id === hash) ? hash : ''}
+      value={currentId ?? ''}
       onChange={(e) => {
-        router.push(e.target.value ? `/${league.id}/cap#${e.target.value}` : `/${league.id}`);
+        router.push(e.target.value ? `/${league.id}/${e.target.value}` : `/${league.id}`);
       }}
     >
       <option value="">Dashboard</option>
@@ -107,7 +98,8 @@ function NbaTeamSelect({ league, orgs, hash }: { league: SubNavLeague; orgs: Org
   );
 }
 
-function NcaamSelects({ league, orgs, hash }: { league: SubNavLeague; orgs: Org[]; hash: string }) {
+/** NCAAM team pages aren't built yet — this still points at the cap-sheet anchor, not a real route. */
+function NcaamSelects({ league, orgs, currentId }: { league: SubNavLeague; orgs: Org[]; currentId?: string }) {
   const router = useRouter();
   const conferences = useMemo(
     () => [...new Set(orgs.map((o) => o.grouping.conference).filter(Boolean))],
@@ -136,7 +128,7 @@ function NcaamSelects({ league, orgs, hash }: { league: SubNavLeague; orgs: Org[
         aria-label="Jump to school"
         className={selectClass}
         style={selectStyle}
-        value={schools.some((o) => o.id === hash) ? hash : ''}
+        value={schools.some((o) => o.id === currentId) ? currentId : ''}
         onChange={(e) => {
           router.push(e.target.value ? `/${league.id}/cap#${e.target.value}` : `/${league.id}`);
         }}

@@ -119,6 +119,8 @@ export interface Contract {
   signedDate: string; // ISO date
   years: ContractYear[];
   totalValue: USD;
+  /** How this contract ended, once it has — undefined while still active. Powers the career contract-history spine. */
+  endedReason?: 'expired' | 'traded' | 'waived' | 'extended';
   source: SourceRef;
 }
 

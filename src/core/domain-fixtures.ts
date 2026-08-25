@@ -23,6 +23,9 @@ import { ORGS } from './fixtures';
  * not hand-authored fixtures.
  */
 
+/** Fixed reference date for anything computed from a birthdate (age, etc.) — the fixture snapshot's "now", not the real one. Using real wall-clock time here would make ages drift out of sync with the fixture birthdates/draft years every year, and would make the same page render different numbers depending on when it's loaded, which the "identical on every navigation" rule explicitly rules out. */
+export const FIXTURE_AS_OF = new Date('2026-01-01T00:00:00.000Z');
+
 const FIXTURE: SourceRef = {
   provider: 'fixture',
   retrievedAt: '2026-01-01T00:00:00.000Z',
@@ -160,6 +163,23 @@ export const CONTRACTS: Contract[] = [
   { id: 'c-duren', playerId: 'duren', teamId: 'DET', type: 'rookie-scale', signedDate: '2022-07-01', years: [
     { season: '2025-26', salary: millions(6.8), guaranteed: true, option: 'team' },
   ], totalValue: millions(27), source: FIXTURE },
+
+  { id: 'c-white', playerId: 'white', teamId: 'BOS', type: 'standard', signedDate: '2022-08-15', years: [
+    { season: '2025-26', salary: millions(19.4), guaranteed: true, option: 'none' },
+    { season: '2026-27', salary: millions(20.9), guaranteed: true, option: 'player' },
+  ], totalValue: millions(76), source: FIXTURE },
+  { id: 'c-jwilliams', playerId: 'jwilliams', teamId: 'OKC', type: 'standard', signedDate: '2025-07-06', years: [
+    { season: '2025-26', salary: millions(30.8), guaranteed: true, option: 'none' },
+  ], totalValue: millions(122), source: FIXTURE },
+  { id: 'c-dort', playerId: 'dort', teamId: 'OKC', type: 'standard', signedDate: '2023-07-06', years: [
+    { season: '2025-26', salary: millions(18.6), guaranteed: true, option: 'none' },
+  ], totalValue: millions(82), source: FIXTURE },
+  { id: 'c-ivey', playerId: 'ivey', teamId: 'DET', type: 'rookie-scale', signedDate: '2022-07-01', years: [
+    { season: '2025-26', salary: millions(6.7), guaranteed: true, option: 'team' },
+  ], totalValue: millions(26), source: FIXTURE },
+  { id: 'c-athompson', playerId: 'athompson', teamId: 'DET', type: 'rookie-scale', signedDate: '2023-07-01', years: [
+    { season: '2025-26', salary: millions(5.9), guaranteed: true, option: 'team' },
+  ], totalValue: millions(23), source: FIXTURE },
 ];
 
 export function contractsForPlayer(playerId: string): Contract[] {

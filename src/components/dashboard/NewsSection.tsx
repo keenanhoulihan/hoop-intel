@@ -142,7 +142,7 @@ function NewsCard({ item }: { item: NewsCardData }) {
         <div className="mt-2 flex items-center gap-2 text-[11px]">
           {item.team && (
             <Link
-              href={`/${item.league}/cap#${item.team.id}`}
+              href={item.league === 'nba' ? `/${item.league}/${item.team.id}` : `/${item.league}/cap#${item.team.id}`}
               className="rounded border border-oak-dark px-1.5 py-0.5 font-semibold text-bark hover:bg-oak"
             >
               {item.team.code}
