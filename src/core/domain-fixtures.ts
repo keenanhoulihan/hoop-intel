@@ -81,14 +81,27 @@ export const TEAMS: Team[] = ORGS.nba.map((org) => ({
    ============================================================ */
 
 export const GAMES: Game[] = [
+  { id: 'g0', league: 'nba', season: '2025-26', date: '2025-11-18T00:00:00.000Z', phase: 'regular', homeTeamId: 'OKC', awayTeamId: 'DET', homeScore: 61, awayScore: 54, status: 'live', source: FIXTURE },
   { id: 'g1', league: 'nba', season: '2025-26', date: '2025-11-14T00:00:00.000Z', phase: 'regular', homeTeamId: 'BOS', awayTeamId: 'OKC', homeScore: 108, awayScore: 114, status: 'final', source: FIXTURE },
   { id: 'g2', league: 'nba', season: '2025-26', date: '2025-11-16T00:00:00.000Z', phase: 'regular', homeTeamId: 'DET', awayTeamId: 'BOS', homeScore: 101, awayScore: 112, status: 'final', source: FIXTURE },
-  { id: 'g3', league: 'nba', season: '2025-26', date: '2025-11-20T00:00:00.000Z', phase: 'regular', homeTeamId: 'OKC', awayTeamId: 'DET', homeScore: null, awayScore: null, status: 'scheduled', source: FIXTURE },
+  { id: 'g3', league: 'nba', season: '2025-26', date: '2025-11-22T00:00:00.000Z', phase: 'regular', homeTeamId: 'OKC', awayTeamId: 'BOS', homeScore: null, awayScore: null, status: 'scheduled', source: FIXTURE },
+  { id: 'g4', league: 'nba', season: '2025-26', date: '2025-11-24T00:00:00.000Z', phase: 'regular', homeTeamId: 'DET', awayTeamId: 'OKC', homeScore: null, awayScore: null, status: 'scheduled', source: FIXTURE },
 ];
 
 export function gamesForSeason(season: string): Game[] {
   return GAMES.filter((g) => g.season === season);
 }
+
+/**
+ * Standout single-line performance per final game — not a full box score
+ * (no per-player game stats entity exists yet), just enough to answer "what
+ * happened" on the dashboard. Presentation-derived, so it lives here rather
+ * than as a core domain type.
+ */
+export const GAME_HIGHLIGHTS: Record<string, { playerId: string; line: string }> = {
+  g1: { playerId: 'sga', line: '38 PTS · 6 AST · 5 REB' },
+  g2: { playerId: 'tatum', line: '31 PTS · 9 REB · 7 AST' },
+};
 
 /* ============================================================
    CONTRACTS
