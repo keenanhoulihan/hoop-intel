@@ -16,6 +16,8 @@
   --walnut-2: #3b2e23;
   --moss: #4e6b48;
   --moss-lo: #e2e7dc;
+  --moss-mid: #7a9471;
+  --moss-hi: #3a4f35;
   --clay: #a6512e;
   --clay-lo: #f0e0d6;
   --ink: #2b2119;
@@ -55,4 +57,22 @@ body {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Dashboard feed entry — staggered via inline animation-delay per row.
+   The prefers-reduced-motion rule above kills this globally, so it never
+   needs its own media-query guard. */
+@keyframes feed-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feed-row-enter {
+  animation: feed-row-in 240ms ease-out backwards;
 }

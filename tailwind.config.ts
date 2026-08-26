@@ -21,6 +21,8 @@ export default {
         "walnut-2": "var(--walnut-2)",
         moss: "var(--moss)",
         "moss-wash": "var(--moss-lo)",
+        "moss-mid": "var(--moss-mid)",
+        "moss-hi": "var(--moss-hi)",
         clay: "var(--clay)",
         "clay-wash": "var(--clay-lo)",
         ink: "var(--ink)",

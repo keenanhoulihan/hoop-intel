@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { NewsCard as NewsCardData } from '@/core/queries';
 import { EmptyState } from './EmptyState';
 
@@ -30,6 +31,12 @@ function elapsedLabel(minutes: number): string {
   return `${Math.round(hours / 24)}d`;
 }
 
+/** First-paint budget — the rest of the wire sits behind "More from the wire." */
+const INITIAL_VISIBLE = 6;
+/** Stagger only ever applies to what's actually visible on first paint. */
+const STAGGER_CAP = 8;
+const STAGGER_STEP_MS = 40;
+
 /**
  * News is the one module with a bespoke layout — a filter rail beside its
  * cards, per the brief. Filter state lives here (not in the URL or a
@@ -38,6 +45,7 @@ function elapsedLabel(minutes: number): string {
  */
 export function NewsSection({ data }: { data: NewsCardData[] }) {
   const [active, setActive] = useState<string>('all');
+  const [expanded, setExpanded] = useState(false);
 
   const counts = useMemo(() => {
     const c = new Map<string, number>();
@@ -47,6 +55,7 @@ export function NewsSection({ data }: { data: NewsCardData[] }) {
 
   const categories = useMemo(() => [...counts.keys()].sort(), [counts]);
   const filtered = active === 'all' ? data : data.filter((n) => n.category === active);
+  const visible = expanded ? filtered : filtered.slice(0, INITIAL_VISIBLE);
 
   if (data.length === 0) return <EmptyState label="No wire items yet." />;
 
@@ -56,9 +65,28 @@ export function NewsSection({ data }: { data: NewsCardData[] }) {
         aria-label="Filter news"
         className="flex gap-2 overflow-x-auto pb-1 min-[761px]:w-[174px] min-[761px]:shrink-0 min-[761px]:flex-col min-[761px]:gap-1 min-[761px]:overflow-visible min-[761px]:pb-0"
       >
-        <FilterButton activeId={active} id="all" label="Everything" count={data.length} onClick={setActive} />
+        <FilterButton
+          activeId={active}
+          id="all"
+          label="Everything"
+          count={data.length}
+          onClick={(id) => {
+            setActive(id);
+            setExpanded(false);
+          }}
+        />
         {categories.map((c) => (
-          <FilterButton key={c} activeId={active} id={c} label={label(c)} count={counts.get(c) ?? 0} onClick={setActive} />
+          <FilterButton
+            key={c}
+            activeId={active}
+            id={c}
+            label={label(c)}
+            count={counts.get(c) ?? 0}
+            onClick={(id) => {
+              setActive(id);
+              setExpanded(false);
+            }}
+          />
         ))}
       </nav>
 
@@ -76,11 +104,21 @@ export function NewsSection({ data }: { data: NewsCardData[] }) {
             }
           />
         ) : (
-          <ul className="flex flex-col gap-3">
-            {filtered.map((item) => (
-              <NewsCard key={item.id} item={item} />
-            ))}
-          </ul>
+          <>
+            <ul className="flex flex-col gap-3">
+              {visible.map((item, i) => (
+                <NewsCard key={item.id} item={item} enterDelayMs={i < STAGGER_CAP ? i * STAGGER_STEP_MS : null} />
+              ))}
+            </ul>
+            {!expanded && filtered.length > INITIAL_VISIBLE && (
+              <button
+                onClick={() => setExpanded(true)}
+                className="mt-4 w-full rounded border border-oak-dark py-2 text-[12px] font-semibold text-bark hover:bg-bone-lo hover:text-walnut"
+              >
+                More from the wire ({filtered.length - INITIAL_VISIBLE})
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -106,13 +144,13 @@ function FilterButton({
       onClick={() => onClick(id)}
       aria-pressed={isActive}
       className={`flex shrink-0 items-center justify-between gap-2 rounded px-2.5 py-1.5 text-left text-[12px] whitespace-nowrap min-[761px]:whitespace-normal ${
-        isActive ? 'bg-oak text-walnut font-semibold' : 'text-bark hover:bg-bone-lo'
+        isActive ? 'bg-moss text-bone font-semibold' : 'text-bark hover:bg-bone-lo'
       }`}
     >
       <span>{text}</span>
       <span
         className={`rounded px-1.5 text-[10px] font-mono tabular-nums ${
-          isActive ? 'bg-walnut text-bone' : 'bg-bone-lo text-bark-light'
+          isActive ? 'bg-bone text-moss-hi' : 'bg-bone-lo text-bark-light'
         }`}
       >
         {count}
@@ -121,9 +159,34 @@ function FilterButton({
   );
 }
 
-function NewsCard({ item }: { item: NewsCardData }) {
+function NewsCard({ item, enterDelayMs }: { item: NewsCardData; enterDelayMs: number | null }) {
+  const router = useRouter();
+  const href = item.team
+    ? item.league === 'nba'
+      ? `/${item.league}/${item.team.id}`
+      : `/${item.league}/cap#${item.team.id}`
+    : null;
+
   return (
-    <li className="flex flex-col gap-2 rounded-panel border border-rule bg-bone-hi p-4 sm:flex-row sm:gap-4">
+    <li
+      role={href ? 'link' : undefined}
+      tabIndex={href ? 0 : undefined}
+      onClick={href ? () => router.push(href) : undefined}
+      onKeyDown={
+        href
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                router.push(href);
+              }
+            }
+          : undefined
+      }
+      style={enterDelayMs !== null ? { animationDelay: `${enterDelayMs}ms` } : undefined}
+      className={`${enterDelayMs !== null ? 'feed-row-enter' : ''} flex flex-col gap-2 rounded-panel border border-rule bg-bone-hi p-4 transition-colors sm:flex-row sm:gap-4 ${
+        href ? 'cursor-pointer hover:border-walnut hover:bg-bone' : ''
+      }`}
+    >
       <div className="font-mono text-[11px] tabular-nums text-bark-light sm:w-[42px] sm:shrink-0 sm:pt-0.5">
         {elapsedLabel(item.elapsedMinutes)}
       </div>
@@ -140,9 +203,10 @@ function NewsCard({ item }: { item: NewsCardData }) {
         <h3 className="font-serif text-[15px] font-semibold leading-snug text-ink">{item.headline}</h3>
         <p className="mt-1 text-[12.5px] text-muted">{item.dek}</p>
         <div className="mt-2 flex items-center gap-2 text-[11px]">
-          {item.team && (
+          {item.team && href && (
             <Link
-              href={item.league === 'nba' ? `/${item.league}/${item.team.id}` : `/${item.league}/cap#${item.team.id}`}
+              href={href}
+              onClick={(e) => e.stopPropagation()}
               className="rounded border border-oak-dark px-1.5 py-0.5 font-semibold text-bark hover:bg-oak"
             >
               {item.team.code}

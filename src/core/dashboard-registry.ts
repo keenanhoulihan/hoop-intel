@@ -1,19 +1,18 @@
 import type { ComponentType } from 'react';
 import type { LeagueId, LeagueModule, SportId } from './league';
 import type { UserProfile } from './profile';
-import { getInjuries, getNews, getRecentTransactions, getRumors, getTeamDirectory } from './queries';
+import { getInjuries, getNews, getRecentTransactions, getRumors } from './queries';
 import { NewsSection } from '@/components/dashboard/NewsSection';
 import { TransactionsLedger } from '@/components/dashboard/TransactionsLedger';
 import { InjuryBoard } from '@/components/dashboard/InjuryBoard';
 import { RumorMill } from '@/components/dashboard/RumorMill';
-import { TeamGrid } from '@/components/dashboard/TeamGrid';
 
 /**
- * Declarative dashboard modules for the main column, plus full-width
- * sections (Team directory) that span past it. Adding a sixth section later
- * is one entry here plus a component — nothing about the page changes. The
- * context rail (Apron watch / Room available / AP 25) is separate, fixed
- * page furniture, not registry-driven — see ContextRail.tsx.
+ * Declarative dashboard modules for the main column, plus any full-width
+ * sections that span past it. Adding a section later is one entry here plus
+ * a component — nothing about the page changes. The context rail (Apron
+ * watch / Room available / AP 25) is separate, fixed page furniture, not
+ * registry-driven — see ContextRail.tsx.
  */
 
 export interface ModuleLoadCtx {
@@ -74,15 +73,6 @@ export const REGISTRY: DashboardModuleSpec<any>[] = [
     sport: 'basketball',
     load: (ctx) => getRumors(ctx.league),
     Component: RumorMill,
-  },
-  {
-    id: 'team-directory',
-    title: 'Team directory',
-    size: 'full',
-    priority: 4,
-    sport: 'basketball',
-    load: (ctx) => getTeamDirectory(ctx.leagueModule),
-    Component: TeamGrid,
   },
 ];
 

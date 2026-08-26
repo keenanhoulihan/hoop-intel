@@ -167,38 +167,32 @@ export async function getInjuries(league: LeagueId): Promise<InjuryCard[]> {
 }
 
 /* ============================================================
-   TEAM DIRECTORY — full-width grid, grouped by division
+   DASHBOARD HERO — short editorial lede + live anchors
    ============================================================ */
 
-export interface TeamDirectoryEntry {
-  team: Team;
-  division: string;
-  conference: string;
-  record: string;
-  payroll: string;
-  tone: 'moss' | 'oak' | 'clay';
+export interface WireHighlights {
+  hotCount: number;
+  nextEvent: { label: string; daysUntil: number } | null;
+  asOf: Date;
 }
 
-export async function getTeamDirectory(league: LeagueModule): Promise<TeamDirectoryEntry[]> {
+/** Backs the dashboard's lede module — a fixture-safe "what's live" summary, never a fabricated headline. */
+export async function getWireHighlights(league: LeagueModule): Promise<WireHighlights> {
   try {
-    const orgs = ORGS[league.id] ?? [];
-    return orgs.map((org) => {
-      const position = positionFor(org.id);
-      const thresholds = league.economics.thresholds(position.season);
-      const band = bandOf(position, thresholds);
-      const tone = bandTone(band?.id);
-      const record = TEAM_RECORDS[org.id];
-      return {
-        team: TEAMS.find((t) => t.id === org.id) ?? { ...org, roster: [] },
-        division: org.grouping.division ?? '',
-        conference: org.grouping.conference ?? '',
-        record: record ? `${record.wins}-${record.losses}` : '—',
-        payroll: formatUSD(position.committed),
-        tone,
-      };
-    });
+    const news = await getNews(league.id);
+    const hotCount = news.filter((n) => n.hot).length;
+    const events = league.movement
+      .calendar(league.season.current)
+      .map((e) => ({ label: e.label, at: new Date(e.at) }))
+      .filter((e) => e.at.getTime() >= FIXTURE_AS_OF.getTime())
+      .sort((a, b) => a.at.getTime() - b.at.getTime());
+    const next = events[0];
+    const nextEvent = next
+      ? { label: next.label, daysUntil: Math.round((next.at.getTime() - FIXTURE_AS_OF.getTime()) / 86_400_000) }
+      : null;
+    return { hotCount, nextEvent, asOf: FIXTURE_AS_OF };
   } catch {
-    return [];
+    return { hotCount: 0, nextEvent: null, asOf: FIXTURE_AS_OF };
   }
 }
 
